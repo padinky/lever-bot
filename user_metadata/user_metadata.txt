@@ -1,0 +1,101 @@
+{
+    "name": "John Doe",
+    "contact_information": {
+        "email": "john.doe@example.com",
+        "phone": "5173014578",
+        "current_address": {
+            "city": "New York",
+            "state": "NY",
+            "country": "USA",
+            "zip_code": "10013"
+        },
+        "linkedin": "https://www.linkedin.com/in/john-doe-67890"
+    },
+    "years_of_experience": "12",
+    "experience": [
+        {
+            "job_title": "Senior Product Manager",
+            "company": "Salesforce",
+            "location": "San Francisco, CA, USA",
+            "start_date": "Apr 2019",
+            "end_date": "present",
+            "responsibilities": [
+                "Spearheaded the end-to-end launch of an AI-driven customer insights platform, achieving a 30% increase in adoption across enterprise clients.",
+                "Collaborated with engineering and design teams to reduce feature release cycles by 25% through agile processes.",
+                "Defined KPIs and analytics dashboards, empowering teams to make data-driven decisions."
+            ]
+        },
+        {
+            "job_title": "Product Manager",
+            "company": "Amazon",
+            "location": "New York, NY, USA",
+            "start_date": "Aug 2015",
+            "end_date": "Mar 2019",
+            "responsibilities": [
+                "Led a product pivot strategy that increased market share in the e-commerce space by 15%.",
+                "Conducted market research and competitive analysis to identify opportunities for product differentiation.",
+                "Partnered with marketing teams to drive successful GTM (Go-to-Market) strategies, exceeding revenue targets by 18%."
+            ]
+        },
+        {
+            "job_title": "Associate Product Manager",
+            "company": "Microsoft",
+            "location": "Austin, TX, USA",
+            "start_date": "June 2012",
+            "end_date": "July 2015",
+            "responsibilities": [
+                "Collaborated with engineering teams to launch a workflow automation tool that saved enterprise clients an average of 40 hours per month.",
+                "Analyzed user behavior to prioritize features, increasing NPS (Net Promoter Score) by 12 points.",
+                "Assisted in building the company’s first roadmap to align business goals with customer needs."
+            ]
+        }
+    ],
+    "skills": [
+        "Roadmapping",
+        "backlog prioritization",
+        "competitive analysis",
+        "stakeholder alignment",
+        "JIRA",
+        "Confluence",
+        "SQL",
+        "APIs",
+        "Tableau",
+        "Google Analytics",
+        "Building and managing teams",
+        "cross-functional collaboration",
+        "conflict resolution"
+    ],
+    "education": [
+        {
+            "degree": "PhD",
+            "field_of_study": "Computer Science",
+            "institution": "Stanford University",
+            "graduation_date": None
+        },
+        {
+            "degree": "BS",
+            "field_of_study": "Computer Engineering",
+            "institution": "University of Michigan",
+            "graduation_date": None
+        }
+    ],
+    "certifications": [
+        "Pragmatic Product Management Certification",
+        "Agile Product Ownership Certificate"
+    ],
+    "projects": [],
+    "languages": [],
+    "industries": ["SaaS", "e-commerce", "B2B tech"],
+    "relevant_job_titles": [
+        "Director of Product Management",
+        "Head of Product",
+        "VP of Product",
+        "Senior Product Manager",
+        "Product Strategy Lead",
+        "Chief Product Officer",
+        "Product Development Director",
+        "Product Innovation Manager"
+    ],
+    "additional_information": None,
+    "user_salary": 100000
+}
