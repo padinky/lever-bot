@@ -143,6 +143,279 @@ async def extract_form_fields(page) -> list[FormField]:
     logger.info(f"Found {len(required_fields)} required fields in total")
     return required_fields
 
+async def is_debounced_field(page, field):
+    """
+    Check if a field is a debounced field (has class 'location-input').
+    
+    Args:
+        page: The Playwright page object
+        field: The form field to check
+        
+    Returns:
+        bool: True if the field is debounced, False otherwise
+    """
+    try:
+        # Construct a selector that matches the field's name and has the class 'location-input'
+        selector = f'input[name="{field.escaped_name}"].location-input'
+        element = await page.query_selector(selector)
+        return element is not None
+    except Exception:
+        return False
+
+async def handle_debounced_field(page, field, value):
+    """
+    Special handling for debounced fields like location inputs.
+    
+    Args:
+        page: The Playwright page object
+        field: The form field to fill
+        value: The value to enter
+    """
+    from services.captcha_service import solve_hcaptcha
+    
+    logger.info(f"Handling debounced field: {field.input_name} with value: {value}")
+    
+    try:
+        # 1. First solve hCaptcha if needed
+        logger.info("Pre-emptively solving hCaptcha for location search...")
+        
+        hcaptcha_input = await page.query_selector('#hcaptchaResponseInput')
+        
+        if hcaptcha_input:
+            site_key = await page.evaluate('''
+                () => {
+                    const hcaptchaDiv = document.querySelector('div#h-captcha.h-captcha');
+                    return hcaptchaDiv ? hcaptchaDiv.getAttribute('data-sitekey') : null;
+                }
+            ''')
+            
+            if site_key:
+                logger.info(f"Found hCaptcha site key: {site_key}")
+                captcha_solved = await solve_hcaptcha(page, site_key, page.url)
+                
+                if captcha_solved:
+                    logger.info("Successfully pre-solved hCaptcha")
+                    await page.wait_for_timeout(1000)
+                else:
+                    logger.warning("Failed to pre-solve hCaptcha")
+        
+        # 2. Get the location input field
+        element_selector = f'input[name="{field.escaped_name}"]'
+        element = await page.wait_for_selector(element_selector)
+        
+        if not element:
+            logger.warning(f"Element not found for debounced field: {field.input_name}")
+            return
+        
+        # 3. Fill the input field 
+        await element.scroll_into_view_if_needed()
+        await element.fill("")
+        await human_like_typing(element, value)
+        
+        # 4. Wait a fixed time for the debounce (500ms plus buffer)
+        await page.wait_for_timeout(700)
+        
+        # 5. Use basic JavaScript to trigger the search manually
+        await page.evaluate('''
+            () => {
+                if (typeof debouncedGetLocationResultsByInput === 'function') {
+                    debouncedGetLocationResultsByInput();
+                }
+            }
+        ''')
+        
+        # 6. Wait for results to load
+        await page.wait_for_timeout(1500)
+        
+        # 7. Check if any options are available and select the first one
+        has_options = await page.evaluate('''
+            () => {
+                const options = document.querySelectorAll('.dropdown-location');
+                return options.length > 0;
+            }
+        ''')
+        
+        if has_options:
+            logger.info("Found dropdown options, selecting first one")
+            
+            # Use direct jQuery click as in original code
+            success = await page.evaluate('''
+                () => {
+                    try {
+                        $('.dropdown-location:first').mousedown();
+                        return true;
+                    } catch (e) {
+                        console.error("Error clicking option:", e);
+                        return false;
+                    }
+                }
+            ''')
+            
+            if success:
+                logger.info("Successfully selected location option")
+            else:
+                logger.warning("Failed to select location option")
+        else:
+            logger.info("No location options found, using raw input")
+        
+        # 8. Ensure we move to the next field
+        await page.wait_for_timeout(500)
+        await element.press("Tab")
+        
+    except Exception as e:
+        logger.error(f"Error handling debounced field {field.input_name}: {str(e)}")
+        # Just try to use the raw value and move on
+        try:
+            element = await page.query_selector(f'input[name="{field.escaped_name}"]')
+            if element:
+                await element.fill(value)
+                await element.press("Tab")
+        except Exception:
+            pass
+    """
+    Special handling for debounced fields like location inputs with precise option selection.
+    """
+    from services.captcha_service import solve_hcaptcha
+
+    # Define the search delay matching the JavaScript value
+    SEARCH_DELAY = 500  # Milliseconds, matching the JS code
+    
+    logger.info(f"Handling debounced field: {field.input_name} with value: {value}")
+    
+    try:
+        # Pre-emptively solve hCaptcha
+        logger.info("Pre-emptively solving hCaptcha for location search...")
+        
+        hcaptcha_input = await page.query_selector('#hcaptchaResponseInput')
+        
+        if hcaptcha_input:
+            logger.info("Found hCaptcha response input field, attempting to solve...")
+            
+            site_key = await page.evaluate('''
+                () => {
+                    const hcaptchaDiv = document.querySelector('div#h-captcha.h-captcha');
+                    return hcaptchaDiv ? hcaptchaDiv.getAttribute('data-sitekey') : null;
+                }
+            ''')
+            
+            if site_key:
+                logger.info(f"Found hCaptcha site key: {site_key}")
+                captcha_solved = await solve_hcaptcha(page, site_key, page.url)
+                
+                if captcha_solved:
+                    logger.info("Successfully pre-solved hCaptcha")
+                    await page.wait_for_timeout(1000)
+                else:
+                    logger.warning("Failed to pre-solve hCaptcha")
+        
+        # Interact with location field
+        element_selector = f'input[name="{field.escaped_name}"]'
+        element = await page.wait_for_selector(element_selector)
+        
+        if not element:
+            logger.warning(f"Element not found for debounced field: {field.input_name}")
+            return
+        
+        await element.scroll_into_view_if_needed()
+        
+        # Clear and fill the field
+        await element.fill("")
+        await human_like_typing(element, value)
+        
+        # Wait for the debounce delay
+        logger.info(f"Waiting for debounce delay ({SEARCH_DELAY}ms)...")
+        await page.wait_for_timeout(800)  # Wait a bit longer than the actual delay to be safe
+        
+        # Wait for dropdown to become visible
+        try:
+            logger.info("Waiting for dropdown to appear...")
+            dropdown_visible = await page.wait_for_function('''
+                () => {
+                    const container = document.querySelector('.dropdown-container');
+                    return container && window.getComputedStyle(container).display !== 'none';
+                }
+            ''', timeout=6000)
+            
+            if dropdown_visible:
+                logger.info("Dropdown appeared")
+                
+                # Wait for options to load (wait for AJAX completion)
+                await page.wait_for_function('''
+                    () => {
+                        // Either options have loaded or the "no results" message is shown
+                        return document.querySelectorAll('.dropdown-location').length > 0 || 
+                               (document.querySelector('.dropdown-no-results') && 
+                                window.getComputedStyle(document.querySelector('.dropdown-no-results')).display !== 'none');
+                    }
+                ''', timeout=5000)
+                
+                # Check if we have any options
+                options_count = await page.evaluate('''
+                    () => document.querySelectorAll('.dropdown-location').length
+                ''')
+                
+                logger.info(f"Found {options_count} location options")
+                
+                if options_count > 0:
+                    # Get the first option details
+                    first_option = await page.evaluate('''
+                        () => {
+                            const option = document.querySelector('.dropdown-location');
+                            if (option) {
+                                return {
+                                    id: option.id,
+                                    text: option.textContent,
+                                    index: option.id.split('-')[1]
+                                };
+                            }
+                            return null;
+                        }
+                    ''')
+                    
+                    if first_option:
+                        logger.info(f"First option: {first_option}")
+                        
+                        # Instead of clicking, which may be unreliable, execute the exact same actions 
+                        # that the JavaScript event handler would do
+                        await page.evaluate(f'''
+                            () => {{
+                                // Get the searchedLocations array (should be populated by now)
+                                if (typeof searchedLocations !== 'undefined' && searchedLocations) {{
+                                    // Hide dropdown
+                                    $('.dropdown-container').css({{ display: 'none' }});
+                                    
+                                    // Set input value
+                                    $('input.location-input').val('{first_option["text"]}');
+                                    
+                                    // Set hidden selected-location field
+                                    const selectedIndex = {first_option["index"]};
+                                    $('#selected-location').val(JSON.stringify(searchedLocations[selectedIndex]));
+                                    
+                                    // Empty dropdown
+                                    $('.dropdown-results').empty();
+                                    $('.dropdown-no-results').css({{ display: 'none' }});
+                                    $('.dropdown-loading-results').css({{ display: 'none' }});
+                                }}
+                            }}
+                        ''')
+                        
+                        logger.info("Successfully selected location using JavaScript handlers")
+                    else:
+                        logger.warning("Could not get details of the first option")
+                else:
+                    logger.warning("No options found in dropdown")
+            else:
+                logger.warning("Dropdown did not appear")
+        
+        except Exception as e:
+            logger.error(f"Error handling dropdown: {str(e)}")
+            # Fallback - just use the raw value
+            await element.press("Tab")
+            logger.info("Using raw input value as fallback")
+        
+    except Exception as e:
+        logger.error(f"Error handling debounced field {field.input_name}: {str(e)}")
+
 async def fill_form_fields(page: Page, required_fields: list[FormField], suggested_values: dict):
     """
     Fill form fields with suggested values.
@@ -194,6 +467,12 @@ async def fill_form_fields(page: Page, required_fields: list[FormField], suggest
         logger.info(f"Filling field '{field.input_name}' with value: {value}")
         
         try:
+            # Check if field is a debounced field (location input)
+            if await is_debounced_field(page, field):
+                logger.info(f"Detected debounced field: {field.input_name}")
+                await handle_debounced_field(page, field, value)
+                continue
+            
             # Determine the appropriate selector based on field type
             element_selector = (
                 f'textarea[name="{field.input_name}"]' if field.input_type == 'textarea'

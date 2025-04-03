@@ -21,24 +21,25 @@ async def human_like_delay(page: Page, min_delay: float = 0.5, max_delay: float 
     await page.wait_for_timeout(delay * 1000)  # Convert to milliseconds
     
     # Random scrolling behavior (70% chance to scroll)
-    if random.random() < 0.7:
-        try:
-            # Get page height
-            page_height = await page.evaluate('document.documentElement.scrollHeight')
-            viewport_height = await page.evaluate('window.innerHeight')
+    # commented out since it is interrupting the debounce dropdowns to be appearing
+    # if random.random() < 0.7:
+    #     try:
+    #         # Get page height
+    #         page_height = await page.evaluate('document.documentElement.scrollHeight')
+    #         viewport_height = await page.evaluate('window.innerHeight')
             
-            # Random scroll positions
-            scroll_positions = [
-                random.randint(0, max(1, page_height - viewport_height)),
-                random.randint(0, max(1, page_height - viewport_height))
-            ]
+    #         # Random scroll positions
+    #         scroll_positions = [
+    #             random.randint(0, max(1, page_height - viewport_height)),
+    #             random.randint(0, max(1, page_height - viewport_height))
+    #         ]
             
-            for position in scroll_positions:
-                await page.evaluate(f'window.scrollTo(0, {position})')
-                await page.wait_for_timeout(random.randint(200, 800))
+    #         # for position in scroll_positions:
+    #         #     await page.evaluate(f'window.scrollTo(0, {position})')
+    #         #     await page.wait_for_timeout(random.randint(200, 800))
                 
-        except Exception as e:
-            logger.error(f"Error during scrolling: {str(e)}")
+    #     except Exception as e:
+    #         logger.error(f"Error during scrolling: {str(e)}")
 
 async def human_like_typing(element, text, min_delay=50, max_delay=150):
     """

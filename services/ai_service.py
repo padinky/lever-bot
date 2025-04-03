@@ -98,6 +98,7 @@ def suggest_field_values(required_fields: list[FormField]) -> dict:
 
     # Generate the prompt
     prompt = generate_prompt(user_metadata, required_fields)
+    logger.info(f"Prompt: {prompt}")
 
     # Initialize OpenAI client
     client = openai.OpenAI(api_key=api_key)
