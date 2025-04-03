@@ -1,4 +1,4 @@
-# Job Application Bot
+# Lever Job Application Bot
 
 An automated job application bot using Python and Playwright to fill out and submit job applications on Lever-based job application pages.
 
@@ -66,6 +66,21 @@ pip install -r requirements.txt
 4. Install browser binaries:
 
 ```bash
+# Install all browsers
+playwright install
+
+# Or install only Chromium (recommended for this application)
+playwright install chromium
+```
+
+5. If you encounter issues with the browser installation:
+
+```bash
+# Update Playwright to the latest version
+pip install --upgrade playwright
+
+# Clear the cache and reinstall browsers
+rm -rf ~/Library/Caches/ms-playwright
 playwright install
 ```
 
@@ -82,12 +97,20 @@ SOLVECAPTCHA_API_KEY=your_solvecaptcha_api_key_here
 
 ## Usage
 
-1. Configure the target job application URL in `config/settings.py`
-2. Run the bot:
+Run the application by providing the target Lever job application URL as a required command-line argument:
 
 ```bash
-python main.py
+python main.py --url "https://jobs.lever.co/company/job-id/apply"
 ```
+
+For example:
+
+```bash
+python main.py --url "https://jobs.lever.co/ippon/528e313e-da2e-4fdd-949b-6c44e2798738/apply"
+```
+
+The URL must follow the Lever job application format: `https://jobs.lever.co/company/job-id/apply`.
+
 
 ## Configuration
 
@@ -95,9 +118,10 @@ You can customize the bot behavior in `config/settings.py`:
 
 - Set different proxies
 - Change timeout values
-- Configure browser settings
-- Set target URLs
+- Configure browser settings (headless mode, etc.)
 - Update resume path
+- Configure OpenAI settings
+- Adjust captcha handling parameters
 
 ## Logging
 
