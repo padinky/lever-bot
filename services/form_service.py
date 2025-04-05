@@ -225,7 +225,7 @@ async def handle_debounced_field(page, field, value):
         ''')
         
         # 6. Wait for results to load
-        await page.wait_for_timeout(1500)
+        await page.wait_for_timeout(5000)
         
         # 7. Check if any options are available and select the first one
         has_options = await page.evaluate('''
@@ -259,7 +259,7 @@ async def handle_debounced_field(page, field, value):
             logger.info("No location options found, using raw input")
         
         # 8. Ensure we move to the next field
-        await page.wait_for_timeout(500)
+        await page.wait_for_timeout(5000)
         await element.press("Tab")
         
     except Exception as e:
@@ -537,8 +537,8 @@ async def submit_application(page: Page):
             await detect_and_solve_captcha(page)
             
             # Wait for submission to complete
-            logger.info("Waiting for submission to complete (20 seconds)")
-            await page.wait_for_timeout(20000)  # Wait for 20 seconds
+            logger.info("Waiting for submission to complete (10 seconds)")
+            await page.wait_for_timeout(10000)  # Wait for 10 seconds
             
             # Check for success indicators
             # This could be customized based on the specific confirmation patterns

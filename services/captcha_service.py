@@ -207,7 +207,7 @@ async def solve_hcaptcha(page: Page, site_key: str, site_url: str) -> bool:
                     ''')
 
                     # Add a delay after setting the solution
-                    await page.wait_for_timeout(2000)
+                    await page.wait_for_timeout(10000)
                     
                     # If there's a useragent in the response, update the browser's user agent
                     if result.get('useragent'):
